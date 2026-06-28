@@ -149,7 +149,7 @@
             display: flex; flex-direction: column; align-items: center;
             width: 100%; cursor: pointer; 
             -webkit-tap-highlight-color: transparent;
-            touch-action: none; /* Critical for mobile: stops scroll/refresh on hold */
+            touch-action: none; 
             margin-bottom: 20px; 
         }
 
@@ -204,7 +204,6 @@
         }
 
         .next-page-btn:hover { background-color: #d1b88a; color: #443a2f; }
-
     </style>
 </head>
 <body>
@@ -243,7 +242,6 @@
     </div>
 
     <script>
-        // JS remains entirely unchanged
         const audio = document.getElementById("audio-track");
         audio.volume = 0.3; 
         const videos = document.querySelectorAll("video");
@@ -253,6 +251,7 @@
         const trackWaveform = document.getElementById("waveform");
         const crankHandle = document.getElementById("crank-handle");
         const timeDisplay = document.getElementById("time-display");
+        
         let isPlaying = false;
         let animationFrameId;
         const numberOfBars = 150; 
