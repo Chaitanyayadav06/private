@@ -170,7 +170,7 @@
 <body>
     <div id="game-container">
         <h1>GUESS THE WORD</h1>
-        <p class="instructions">Type a 3-letter word and press Enter.</p>
+        <p class="instructions">Type a 3-letter word and press Enter.<br><small>(Tap anywhere here to open keyboard on mobile)</small></p>
         <div class="grid" id="grid"></div>
         <p id="message"></p>
     </div>
@@ -189,7 +189,6 @@
     </div>
 
     <script>
-        // JS remains entirely unchanged
         const targetWord = "hao"; 
         const maxGuesses = 3;
         const wordLength = 3;
@@ -201,6 +200,38 @@
         const gameContainer = document.getElementById("game-container");
         const revealContainer = document.getElementById("reveal-container");
 
+        // --- NEW: MOBILE KEYBOARD SUPPORT ---
+        // 1. Create a hidden input field
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "text";
+        hiddenInput.style.position = "absolute";
+        hiddenInput.style.opacity = "0";
+        hiddenInput.style.top = "-9999px"; // Keep it far off-screen
+        document.body.appendChild(hiddenInput);
+
+        // 2. Open keyboard when tapping the game screen
+        gameContainer.addEventListener("click", () => {
+            hiddenInput.focus();
+        });
+
+        // 3. Handle mobile typing
+        hiddenInput.addEventListener("input", () => {
+            if (currentRow >= maxGuesses || revealContainer.style.display === "flex") return;
+            
+            // Extract only letters, limit to 3 characters
+            currentGuess = hiddenInput.value.toLowerCase().replace(/[^a-z]/g, "").substring(0, wordLength);
+            hiddenInput.value = currentGuess; // Sync the hidden input
+            updateGrid();
+
+            // Auto-check if 3 letters are typed on mobile (optional, but good for UX)
+            // If you want them to press a button instead, you'd need to add a "Submit" button to your HTML
+            if (currentGuess.length === wordLength) {
+                // Short delay so they see the last letter appear before it checks
+                setTimeout(() => checkGuess(), 150); 
+            }
+        });
+        // ------------------------------------
+
         for (let i = 0; i < maxGuesses * wordLength; i++) {
             let cell = document.createElement("div");
             cell.classList.add("cell");
@@ -208,18 +239,27 @@
             grid.appendChild(cell);
         }
 
+        // Handle Enter key and Desktop typing
         document.addEventListener("keydown", (e) => {
-            if (currentRow >= maxGuesses || revealContainer.style.display === "flex") return; 
+            if (currentRow >= maxGuesses || revealContainer.style.display === "flex") return;
             let key = e.key.toLowerCase();
+
             if (key === "enter") {
-                if (currentGuess.length === wordLength) checkGuess();
-                else showMessage("Not enough letters");
-            } else if (key === "backspace") {
+                if (currentGuess.length === wordLength) {
+                    checkGuess();
+                } else {
+                    showMessage("Not enough letters");
+                }
+            } else if (key === "backspace" && document.activeElement !== hiddenInput) {
+                // Desktop backspace (Mobile is handled by the input listener above)
                 currentGuess = currentGuess.slice(0, -1);
                 updateGrid();
-            } else if (/^[a-z]$/.test(key) && currentGuess.length < wordLength) {
-                currentGuess += key;
-                updateGrid();
+            } else if (/^[a-z]$/.test(key) && document.activeElement !== hiddenInput) {
+                // Desktop typing (Mobile is handled by the input listener above)
+                if (currentGuess.length < wordLength) {
+                    currentGuess += key;
+                    updateGrid();
+                }
             }
         });
 
@@ -233,6 +273,7 @@
         function checkGuess() {
             let guessArr = currentGuess.split("");
             let targetArr = targetWord.split("");
+            
             guessArr.forEach((char, i) => {
                 let cell = document.getElementById(`cell-${currentRow * wordLength + i}`);
                 if (char === targetArr[i]) cell.classList.add("correct");
@@ -242,11 +283,17 @@
 
             if (currentGuess === targetWord) {
                 showMessage("Perfect!");
+                hiddenInput.blur(); // Hide mobile keyboard
                 setTimeout(() => triggerReveal(), 1500);
             } else {
                 currentRow++;
                 currentGuess = "";
-                if (currentRow >= maxGuesses) showMessage("Oh no! Reload the page to try again.");
+                hiddenInput.value = ""; // Clear hidden input for the next row
+                
+                if (currentRow >= maxGuesses) {
+                    showMessage("Oh no! Reload the page to try again.");
+                    hiddenInput.blur(); // Hide mobile keyboard
+                }
             }
         }
 
