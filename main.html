@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* --- GLOBAL STYLING --- */
+        body {
+            background-color: #2c251e; 
+            color: #d1b88a; 
+            font-family: 'Cormorant Garamond', serif; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center; 
+            min-height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        /* --- MAGICAL BACKGROUND --- */
+        #particle-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 0; pointer-events: none; 
+        }
+
+        /* --- SPONGEBOB BALLOON WIPE --- */
+        .balloon-anim {
+            position: fixed; top: 110vh; pointer-events: none; 
+            animation: spongebobWipe ease-in forwards;
+        }
+
+        @keyframes spongebobWipe {
+            0% { transform: translateY(0) scale(0.9); }
+            100% { transform: translateY(-250vh) scale(1.1); }
+        }
+
+        /* --- SCENE 1: IMAGE & OVERLAY TEXT --- */
+        #intro-scene {
+            position: relative;
+            z-index: 10;
+            width: 90%;
+            max-width: 600px;
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 1.5s ease, transform 0.5s ease;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            border-radius: 12px;
+        }
+
+        #intro-scene.visible { opacity: 1; transform: scale(1); }
+
+        #hero-img {
+            width: 100%; display: block; border-radius: 12px;
+            filter: brightness(0.7); 
+        }
+
+        .overlay-text {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); text-align: center;
+            width: 90%; opacity: 0; transition: opacity 1.2s ease;
+        }
+
+        .overlay-text.visible { opacity: 1; }
+
+        #text-happy {
+            font-size: clamp(1.3rem, 5vw, 2rem);
+            color: #ffffff; font-style: italic;
+            text-shadow: 2px 4px 10px rgba(0,0,0,0.8);
+        }
+
+        .handwriting {
+            font-family: 'Caveat', cursive;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            color: #d1b88a; transform: rotate(-5deg); margin-bottom: -10px;
+            text-shadow: 2px 4px 8px rgba(0,0,0,0.8);
+        }
+
+        .bold-title {
+            font-size: clamp(1rem, 4vw, 1.5rem);
+            letter-spacing: 4px; text-transform: uppercase;
+            color: #ffffff; text-shadow: 2px 4px 10px rgba(0,0,0,0.8);
+        }
+
+        /* --- SCENE 2: THE LETTER --- */
+        #letter-wrapper {
+            position: relative;
+            z-index: 10; 
+            width: 90%; max-width: 650px;
+            margin: 40px auto;
+            /* Using clamp for padding so mobile screens aren't squished */
+            padding: clamp(20px, 6vw, 50px) clamp(15px, 5vw, 40px);
+            box-sizing: border-box;
+            background: rgba(44, 37, 30, 0.7); 
+            border: 1px solid rgba(209, 184, 138, 0.2);
+            border-radius: 12px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            display: none; 
+        }
+
+        .paragraph {
+            font-size: clamp(1.1rem, 4vw, 1.35rem);
+            line-height: 1.8; margin-bottom: 25px;
+            color: #e8dcc5; opacity: 0; transform: translateY(20px);
+            transition: opacity 1.5s ease, transform 1.5s ease;
+        }
+
+        .paragraph.visible { opacity: 1; transform: translateY(0); }
+
+        .sign-off {
+            text-align: right; margin-top: 50px;
+            font-style: italic; font-size: clamp(1.2rem, 5vw, 1.5rem);
+            color: #d1b88a;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+
+    <div id="intro-scene">
+        <img id="hero-img" src="IMG_4871.JPG" alt="Abstract Art">
+        <div id="text-happy" class="overlay-text">Happy birthday to my favourite person...</div>
+        <div id="final-title" class="overlay-text">
+            <div class="handwriting">turns out you were</div>
+            <div class="bold-title">Everything I Wanted</div>
+        </div>
+    </div>
+
+    <div id="letter-wrapper">
+        <div id="letter-content"></div>
+    </div>
+
+    <script>
+        // JS remains entirely unchanged
+        function triggerBalloonWipe() {
+            const balloonCount = 100; // slightly reduced for mobile performance
+            for (let i = 0; i < balloonCount; i++) {
+                const balloon = document.createElement('img');
+                balloon.src = 'ballon.png'; 
+                balloon.style.zIndex = Math.random() > 0.3 ? "20" : "5"; 
+                balloon.style.width = `${Math.random() * 250 + 250}px`; 
+                balloon.style.left = `${Math.random() * 120 - 10}vw`; 
+                balloon.classList.add('balloon-anim');
+                balloon.style.animationDuration = `${Math.random() * 0.6 + 4}s`; 
+                balloon.style.animationDelay = `${Math.random() * 0.3}s`; 
+                document.body.appendChild(balloon);
+                setTimeout(() => { balloon.remove(); }, 3000); 
+            }
+        }
+        triggerBalloonWipe();
+
+        const letterText = [
+            "Happy Birthday, my love. ❤️",
+            "First things first, before your brain starts overthinking or stressing out—let me clear this up right now: making this website didn't cost me a single rupee! So please, throw any guilty feelings right out the window immediately. Thank you—for being you. Thank you for making my days brighter, for making me laugh when I need it the most, and for becoming someone so incredibly important to me.",
+            "I wish I could've celebrated this day with you in person, but until that happens, I wanted to improvise to make it a little extra special.",
+            "I hope this year brings you everything you've been wishing for—good health, endless happiness, success in everything you do, and countless moments that make you smile. You deserve every beautiful thing life has to offer.",
+            "Please never stop being the kind, caring, funny, and amazing person you are. The world is genuinely a better place because you're in it, my world definitely is.",
+            "Thank you for making my bad days feel a little less heavy and my good days even better. You've become one of my favorite people, and I'm so grateful that I get to celebrate you today.",
+            "So today, don't worry about anything. Smile a little extra you know I love it it's my favourite, make wonderful memories, and remember that somewhere, someone is smiling just because it's your birthday.",
+            "Happy Birthday once again. I hope today is as beautiful as you are.",
+            "<div class='sign-off'>Now...😉🎂🤍</div>"
+        ];
+
+        const letterContent = document.getElementById("letter-content");
+        letterText.forEach((text) => {
+            let p = document.createElement("div");
+            p.className = "paragraph";
+            p.innerHTML = text;
+            letterContent.appendChild(p);
+        });
+        const allParagraphs = document.querySelectorAll(".paragraph");
+
+        const introScene = document.getElementById('intro-scene');
+        const textHappy = document.getElementById('text-happy');
+        const finalTitle = document.getElementById('final-title');
+        const letterWrapper = document.getElementById('letter-wrapper');
+
+        setTimeout(() => introScene.classList.add('visible'), 1500);
+        setTimeout(() => textHappy.classList.add('visible'), 3000);
+        setTimeout(() => textHappy.classList.remove('visible'), 6000);
+        setTimeout(() => finalTitle.classList.add('visible'), 7000);
+        setTimeout(() => introScene.classList.remove('visible'), 11000);
+
+        setTimeout(() => {
+            introScene.style.display = "none";
+            letterWrapper.style.display = "block";
+            document.body.style.alignItems = "flex-start"; 
+        }, 12500);
+
+        setTimeout(() => {
+            allParagraphs.forEach((p, index) => {
+                setTimeout(() => p.classList.add("visible"), index * 1500); 
+            });
+        }, 13000);
+
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        const particlesArray = [];
+        const numberOfParticles = 60;
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+                this.color = `rgba(209, 184, 138, ${Math.random() * 0.5})`; 
+            }
+            update() {
+                this.x += this.speedX; this.y += this.speedY;
+                if (this.x < 0) this.x = canvas.width;
+                if (this.x > canvas.width) this.x = 0;
+                if (this.y < 0) this.y = canvas.height;
+                if (this.y > canvas.height) this.y = 0;
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            for (let i = 0; i < numberOfParticles; i++) particlesArray.push(new Particle());
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update(); particlesArray[i].draw();
+            }
+            requestAnimationFrame(animateParticles);
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        });
+
+        initParticles(); animateParticles();
+    </script>
+</body>
+</html>

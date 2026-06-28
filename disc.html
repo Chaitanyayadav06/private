@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>A Special Voice Note</title>
+    <style>
+        /* --- GLOBAL STYLING --- */
+        body {
+            background-color: #443a2f; 
+            color: #d1b88a; 
+            font-family: "Courier New", Courier, monospace; 
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none; 
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        #app-container {
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: center; 
+            font-size: clamp(1rem, 4vw, 1.2rem); 
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .timer-display {
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        /* --- THE MACHINE (Roller + Paper) --- */
+        .machine-wrapper {
+            position: relative;
+            width: 100%;
+            height: clamp(250px, 40vh, 350px);
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .paper-window {
+            position: absolute;
+            right: 15%; 
+            width: 75%;
+            height: 85%;
+            background-color: #f8f8f8;
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 6px);
+            overflow: hidden;
+            border-radius: 20px 0 0 20px;
+            box-shadow: -10px 10px 25px rgba(0,0,0,0.25);
+            z-index: 1;
+            mask-image: linear-gradient(to right, black 85%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, black 85%, transparent 100%);
+        }
+
+        .track-bg {
+            position: absolute;
+            top: 0; bottom: 0; left: -1000px; 
+            width: 3000px; 
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.03) 3px, rgba(0,0,0,0.03) 6px);
+        }
+
+        /* Top Track: Photos and Videos */
+        .track-photos {
+            position: absolute;
+            top: 10%;
+            left: 100%; 
+            display: flex;
+            gap: 15px;
+            height: 45%;
+            z-index: 2;
+        }
+
+        .media-item {
+            height: 100%;
+            aspect-ratio: 4/5;
+            background-color: #ddd;
+            border-radius: 8px;
+            object-fit: cover; 
+            box-shadow: 2px 4px 8px rgba(0,0,0,0.1);
+        }
+
+        /* Bottom Track: Waveform */
+        .track-waveform {
+            position: absolute;
+            bottom: 10%;
+            left: 100%; 
+            display: flex;
+            align-items: flex-end;
+            height: 25%;
+            width: 1500px; 
+            gap: 3px;
+            z-index: 3;
+        }
+
+        .bar {
+            width: 3px;
+            background-color: #c07a7f; 
+            border-radius: 3px;
+            transition: height 0.1s ease;
+        }
+
+        /* --- STATIONARY MACHINE PARTS --- */
+        .playhead-line {
+            position: absolute; right: 23%; top: 5%; bottom: 5%;
+            width: 2px; background-color: #c07a7f; z-index: 50; 
+        }
+
+        .roller-bar {
+            position: absolute; right: 3%; width: clamp(20px, 8vw, 35px); height: 95%;
+            background: linear-gradient(90deg, #999, #e0e0e0, #fff, #b3b3b3, #888);
+            border-radius: 20px; z-index: 100;
+            box-shadow: 5px 10px 20px rgba(0,0,0,0.5), inset -2px -2px 5px rgba(0,0,0,0.2);
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        .roller-slit {
+            width: 20%; height: 92%; background-color: #111;
+            border-radius: 5px; box-shadow: inset 1px 1px 3px rgba(0,0,0,1);
+        }
+
+        /* --- INTERACTION AREA --- */
+        .interaction-area {
+            display: flex; flex-direction: column; align-items: center;
+            width: 100%; cursor: pointer; 
+            -webkit-tap-highlight-color: transparent;
+            touch-action: none; /* Critical for mobile: stops scroll/refresh on hold */
+            margin-bottom: 20px; 
+        }
+
+        .handle-wrapper {
+            width: 40px; height: 110px; position: relative; margin-bottom: 10px;
+        }
+
+        .handle {
+            width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center;
+            transform-origin: 20px 20px; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.4));
+        }
+
+        .handle-knob {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fff, #aaa 50%, #555);
+            display: flex; justify-content: center; align-items: center; z-index: 3;
+        }
+
+        .handle-heart { font-size: 16px; color: #333; text-shadow: 1px 1px 1px rgba(255,255,255,0.7); margin-top: 3px; }
+        
+        .handle-stem {
+            width: 12px; height: 50px; margin-top: -5px; z-index: 2;
+            background: linear-gradient(90deg, #555, #d4d4d4, #fff, #a0a0a0, #555);
+        }
+
+        .handle-ring {
+            width: 20px; height: 20px; background: transparent; border-radius: 50%;
+            border: 4px solid #a0a0a0; border-top-color: #ddd; border-bottom-color: #555;
+            margin-top: -3px; z-index: 1; box-shadow: inset 1px 2px 4px rgba(0,0,0,0.6);
+        }
+
+        .spin { animation: rotateHandle 2.5s linear infinite; }
+        @keyframes rotateHandle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .instruction-text {
+            color: #d1b88a; font-size: 0.95rem; letter-spacing: 0.5px; transition: opacity 0.3s;
+        }
+        .interaction-area:active .instruction-text { opacity: 0.5; }
+
+        /* --- THE NEXT PAGE BUTTON --- */
+        .next-page-btn {
+            color: #d1b88a;
+            text-decoration: none;
+            font-size: 1rem;
+            border: 1px solid #d1b88a;
+            padding: 10px 30px;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            position: relative; 
+            z-index: 200;
+        }
+
+        .next-page-btn:hover { background-color: #d1b88a; color: #443a2f; }
+
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <div class="header"><span>Happy birthday dumb bunny 🫶🏻</span></div>
+        <div class="timer-display" id="time-display">0:00 / 0:00</div>
+
+        <div class="machine-wrapper">
+            <div class="paper-window" id="paper-window">
+                <div class="track-bg" id="track-bg"></div>
+                <div class="track-photos" id="track-photos">
+                    <img src="1.jpg" alt="Memory 1" class="media-item">
+                    <video src="2.mp4" class="media-item" muted loop playsinline></video>
+                    <video src="3.mp4" class="media-item" muted loop playsinline></video>
+                    <video src="4.mov" class="media-item" muted loop playsinline></video>
+                </div>
+                <div class="track-waveform" id="waveform"></div>
+            </div>
+            <div class="playhead-line"></div>
+            <div class="roller-bar"><div class="roller-slit"></div></div>
+        </div>
+
+        <div class="interaction-area" id="hold-btn">
+            <div class="handle-wrapper">
+                <div class="handle" id="crank-handle">
+                    <div class="handle-knob"><div class="handle-heart">♥</div></div>
+                    <div class="handle-stem"></div>
+                    <div class="handle-ring"></div>
+                </div>
+            </div>
+            <div class="instruction-text">Hold the handle</div>
+        </div>
+
+        <a href="main.html" class="next-page-btn">Next Chapter ➔</a>
+        <audio id="audio-track" src="New Recording 13.m4a"></audio>
+    </div>
+
+    <script>
+        // JS remains entirely unchanged
+        const audio = document.getElementById("audio-track");
+        audio.volume = 0.3; 
+        const videos = document.querySelectorAll("video");
+        const holdBtn = document.getElementById("hold-btn");
+        const trackBg = document.getElementById("track-bg");
+        const trackPhotos = document.getElementById("track-photos");
+        const trackWaveform = document.getElementById("waveform");
+        const crankHandle = document.getElementById("crank-handle");
+        const timeDisplay = document.getElementById("time-display");
+        let isPlaying = false;
+        let animationFrameId;
+        const numberOfBars = 150; 
+        const bars = [];
+
+        for (let i = 0; i < numberOfBars; i++) {
+            let bar = document.createElement("div");
+            bar.classList.add("bar");
+            let baseHeight = Math.floor(Math.random() * 60) + 10; 
+            bar.style.height = `${baseHeight}px`;
+            bar.dataset.baseHeight = baseHeight; 
+            trackWaveform.appendChild(bar);
+            bars.push(bar);
+        }
+
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "0:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        audio.addEventListener("loadedmetadata", () => {
+            timeDisplay.innerText = `0:00 / ${formatTime(audio.duration)}`;
+        });
+
+        audio.addEventListener("ended", () => {
+            isPlaying = false;
+            crankHandle.classList.remove("spin"); 
+            cancelAnimationFrame(animationFrameId);
+            audio.currentTime = 0;
+            timeDisplay.innerText = `0:00 / ${formatTime(audio.duration)}`;
+            trackBg.style.transform = `translateX(0px)`;
+            trackWaveform.style.transform = `translateX(0px)`;
+            trackPhotos.style.transform = `translateX(0px)`;
+            bars.forEach(bar => bar.style.height = `${bar.dataset.baseHeight}px`);
+            videos.forEach(video => { video.pause(); video.currentTime = 0; });
+        });
+
+        function startPlayback(e) {
+            if (e.cancelable) e.preventDefault(); 
+            if (!isPlaying) {
+                audio.play().then(() => {
+                    isPlaying = true;
+                    crankHandle.classList.add("spin"); 
+                    videos.forEach(video => video.play().catch(err => console.log("Video play blocked:", err)));
+                    updateUI();
+                }).catch(err => console.log("Audio play failed:", err));
+            }
+        }
+
+        function stopPlayback(e) {
+            if (e && e.cancelable) e.preventDefault();
+            if (isPlaying) {
+                audio.pause();
+                isPlaying = false;
+                crankHandle.classList.remove("spin"); 
+                cancelAnimationFrame(animationFrameId);
+                videos.forEach(video => video.pause());
+                bars.forEach(bar => bar.style.height = `${bar.dataset.baseHeight}px`);
+            }
+        }
+
+        function updateUI() {
+            if (!isPlaying) return;
+            timeDisplay.innerText = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+            const progress = audio.currentTime / audio.duration;
+            const maxWaveformScroll = 1200; 
+            const maxPhotoScroll = 500; 
+            
+            trackBg.style.transform = `translateX(-${progress * maxWaveformScroll}px)`;
+            trackWaveform.style.transform = `translateX(-${progress * maxWaveformScroll}px)`;
+            trackPhotos.style.transform = `translateX(-${progress * maxPhotoScroll}px)`;
+
+            bars.forEach(bar => {
+                let base = parseInt(bar.dataset.baseHeight);
+                let bounce = base + (Math.random() * 20 - 10); 
+                bounce = Math.max(10, Math.min(80, bounce)); 
+                bar.style.height = `${bounce}px`;
+            });
+            animationFrameId = requestAnimationFrame(updateUI);
+        }
+
+        holdBtn.addEventListener("touchstart", startPlayback, { passive: false });
+        holdBtn.addEventListener("touchend", stopPlayback);
+        holdBtn.addEventListener("touchcancel", stopPlayback);
+        holdBtn.addEventListener("mousedown", startPlayback);
+        window.addEventListener("mouseup", stopPlayback); 
+    </script>
+</body>
+</html>

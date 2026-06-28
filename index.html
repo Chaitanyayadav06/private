@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Special Surprise...</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Courier+Prime&display=swap" rel="stylesheet">
+    <style>
+        /* --- GLOBAL STYLING --- */
+        body {
+            background-color: #366085; 
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; 
+            transition: background-color 1.5s ease; 
+        }
+
+        /* --- PHASE 1: GUESS THE WORD --- */
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            transition: opacity 1s ease;
+            padding: 0 20px;
+            text-align: center;
+        }
+
+        h1 { margin-bottom: 5px; font-size: clamp(1.5rem, 5vw, 2rem); letter-spacing: 2px; }
+        p.instructions { color: #A4C2DD; margin-bottom: 30px; font-size: 0.9rem; }
+
+        .grid { display: grid; grid-template-columns: repeat(3, clamp(50px, 15vw, 70px)); grid-gap: 8px; margin-bottom: 20px; }
+
+        .cell {
+            width: 100%; aspect-ratio: 1;
+            border: 2px solid #5C88AE; 
+            display: flex; justify-content: center; align-items: center;
+            font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: bold; text-transform: uppercase;
+            box-sizing: border-box; transition: all 0.3s ease;
+        }
+
+        .correct { background-color: #538d4e; border-color: #538d4e; }
+        .present { background-color: #b59f3b; border-color: #b59f3b; }
+        .absent { background-color: #2b4966; border-color: #2b4966; } 
+        #message { height: 20px; font-weight: bold; color: #FFD166; }
+
+        /* --- PHASE 2: MASSIVE HAND-TIED BOUQUET REVEAL --- */
+        #reveal-container {
+            display: none;
+            opacity: 0;
+            transition: opacity 2s ease;
+            width: 100%;
+            min-height: 100vh;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center; 
+            padding: 20px;
+            box-sizing: border-box;
+            color: #333; 
+        }
+
+        .digi-logo { 
+            font-family: 'Great Vibes', cursive; 
+            font-size: clamp(3rem, 10vw, 4rem); 
+            margin: 0 0 20px 0; 
+            color: #1a1a1a; 
+            z-index: 10;
+            text-align: center;
+        }
+        
+        /* The Wrapped Bouquet Structure */
+        .bouquet-3d-wrapper {
+            position: relative;
+            width: 100%; 
+            max-width: 450px; 
+            height: 60vh;
+            max-height: 550px; 
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px; 
+            z-index: 1;
+        }
+
+        /* Craft Paper - Back Layer */
+        .paper-back {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 70%;
+            background-color: #d1ab8e; 
+            clip-path: polygon(0 0, 100% 0, 65% 100%, 35% 100%);
+            z-index: 1;
+        }
+
+        /* The Cluster of Flowers */
+        .flower-cluster {
+            position: absolute;
+            top: -5%; 
+            width: 90%;
+            height: 70%;
+            z-index: 2;
+        }
+
+        /* Individual Flowers - Scaled for dense overlapping */
+        .flower-img {
+            position: absolute;
+            width: clamp(70px, 20vw, 120px); 
+            height: clamp(70px, 20vw, 120px);
+            object-fit: contain;
+            transform: scale(0) translate(-50%, -50%);
+            transform-origin: center center;
+            filter: drop-shadow(2px 8px 10px rgba(0,0,0,0.3)); 
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* The Center Lotus */
+        .lotus-center {
+            width: clamp(120px, 35vw, 200px); 
+            height: clamp(120px, 35vw, 200px);
+            z-index: 30; 
+            filter: drop-shadow(0px 10px 18px rgba(0,0,0,0.45)); 
+        }
+
+        /* Craft Paper - Front Folded Layers */
+        .paper-front-left, .paper-front-right {
+            position: absolute;
+            bottom: 0;
+            width: 50%;
+            height: 55%;
+        }
+
+        .paper-front-left {
+            left: 10%;
+            background-color: #e4c1a5; 
+            clip-path: polygon(0 0, 100% 30%, 80% 100%, 30% 100%);
+            z-index: 3;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+        }
+
+        .paper-front-right {
+            right: 10%;
+            background-color: #dfb99c; 
+            clip-path: polygon(0 30%, 100% 0, 70% 100%, 20% 100%);
+            z-index: 4;
+        }
+
+        /* The Next Button */
+        .next-btn {
+            background-color: #1a1a1a;
+            color: white;
+            border: none;
+            padding: 15px clamp(20px, 5vw, 40px);
+            font-family: 'Courier Prime', monospace;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            z-index: 10;
+        }
+
+        .next-btn:hover { background-color: #4a4a4a; }
+
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <h1>GUESS THE WORD</h1>
+        <p class="instructions">Type a 3-letter word and press Enter.</p>
+        <div class="grid" id="grid"></div>
+        <p id="message"></p>
+    </div>
+
+    <div id="reveal-container">
+        <h1 class="digi-logo">Happy Birthday</h1>
+        
+        <div class="bouquet-3d-wrapper">
+            <div class="paper-back"></div>
+            <div class="flower-cluster" id="flower-cluster"></div>
+            <div class="paper-front-left"></div>
+            <div class="paper-front-right"></div>
+        </div>
+
+        <a href="disc.html" class="next-btn">NEXT CHAPTER</a>
+    </div>
+
+    <script>
+        // JS remains entirely unchanged
+        const targetWord = "hao"; 
+        const maxGuesses = 3;
+        const wordLength = 3;
+        let currentGuess = "";
+        let currentRow = 0;
+
+        const grid = document.getElementById("grid");
+        const messageEl = document.getElementById("message");
+        const gameContainer = document.getElementById("game-container");
+        const revealContainer = document.getElementById("reveal-container");
+
+        for (let i = 0; i < maxGuesses * wordLength; i++) {
+            let cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.id = "cell-" + i;
+            grid.appendChild(cell);
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (currentRow >= maxGuesses || revealContainer.style.display === "flex") return; 
+            let key = e.key.toLowerCase();
+            if (key === "enter") {
+                if (currentGuess.length === wordLength) checkGuess();
+                else showMessage("Not enough letters");
+            } else if (key === "backspace") {
+                currentGuess = currentGuess.slice(0, -1);
+                updateGrid();
+            } else if (/^[a-z]$/.test(key) && currentGuess.length < wordLength) {
+                currentGuess += key;
+                updateGrid();
+            }
+        });
+
+        function updateGrid() {
+            for (let i = 0; i < wordLength; i++) {
+                let cell = document.getElementById(`cell-${currentRow * wordLength + i}`);
+                cell.textContent = currentGuess[i] || "";
+            }
+        }
+
+        function checkGuess() {
+            let guessArr = currentGuess.split("");
+            let targetArr = targetWord.split("");
+            guessArr.forEach((char, i) => {
+                let cell = document.getElementById(`cell-${currentRow * wordLength + i}`);
+                if (char === targetArr[i]) cell.classList.add("correct");
+                else if (targetWord.includes(char)) cell.classList.add("present");
+                else cell.classList.add("absent");
+            });
+
+            if (currentGuess === targetWord) {
+                showMessage("Perfect!");
+                setTimeout(() => triggerReveal(), 1500);
+            } else {
+                currentRow++;
+                currentGuess = "";
+                if (currentRow >= maxGuesses) showMessage("Oh no! Reload the page to try again.");
+            }
+        }
+
+        function showMessage(msg) {
+            messageEl.textContent = msg;
+            if (msg !== "Perfect!") setTimeout(() => messageEl.textContent = "", 2000);
+        }
+
+        function triggerReveal() {
+            gameContainer.style.opacity = "0";
+            setTimeout(() => {
+                gameContainer.style.display = "none";
+                document.body.style.backgroundColor = "#f9f9ee"; 
+                document.body.style.overflow = "auto"; 
+                
+                revealContainer.style.display = "flex";
+                generateBouquet(); 
+                setTimeout(() => revealContainer.style.opacity = "1", 100);
+            }, 1000); 
+        }
+
+        function generateBouquet() {
+            const clusterArea = document.getElementById("flower-cluster");
+            const surroundingPositions = [
+                {x: 25, y: 5}, {x: 50, y: 0}, {x: 75, y: 5},
+                {x: 15, y: 20}, {x: 35, y: 15}, {x: 65, y: 15}, {x: 85, y: 20},
+                {x: 5, y: 40}, {x: 25, y: 35}, {x: 75, y: 35}, {x: 95, y: 40},
+                {x: 10, y: 60}, {x: 30, y: 55}, {x: 70, y: 55}, {x: 90, y: 60},
+                {x: 20, y: 80}, {x: 40, y: 75}, {x: 60, y: 75}, {x: 80, y: 80},
+                {x: 30, y: 95}, {x: 50, y: 90}, {x: 70, y: 95}
+            ];
+            const flowerImages = ["carnation.png", "pheony.png", "dasiy.png"];
+
+            surroundingPositions.forEach((pos, index) => {
+                let flower = document.createElement("img");
+                flower.src = flowerImages[Math.floor(Math.random() * flowerImages.length)];
+                flower.classList.add("flower-img");
+                flower.style.left = `${pos.x}%`;
+                flower.style.top = `${pos.y}%`;
+                
+                let randomRotation = Math.random() * 360;
+                clusterArea.appendChild(flower);
+                setTimeout(() => {
+                    flower.style.transform = `scale(1) translate(-50%, -50%) rotate(${randomRotation}deg)`;
+                }, 500 + (index * 60)); 
+            });
+
+            setTimeout(() => {
+                let lotus = document.createElement("img");
+                lotus.src = "lotus.png";
+                lotus.classList.add("flower-img", "lotus-center");
+                lotus.style.left = "50%";
+                lotus.style.top = "45%";
+                clusterArea.appendChild(lotus);
+
+                let naturalRotation = (Math.random() * 30) - 15; 
+                setTimeout(() => {
+                    lotus.style.transform = `scale(1) translate(-50%, -50%) rotate(${naturalRotation}deg)`;
+                }, 100); 
+            }, 500 + (surroundingPositions.length * 60) + 300); 
+        }
+    </script>
+</body>
+</html>
